@@ -1,0 +1,4 @@
+name: EternalFortune
+version: @version@
+main: com.mineinabyss.eternalfortune.EternalFortune
+api-version: 1.17
