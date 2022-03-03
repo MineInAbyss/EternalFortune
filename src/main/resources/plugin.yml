@@ -2,3 +2,10 @@ name: EternalFortune
 version: ${plugin_version}
 main: com.mineinabyss.eternalfortune.EternalFortune
 api-version: 1.17
+authors: [ boy0000 ]
+depend: [ Geary ]
+softdepend: [ DeeperWorld ]
+
+commands:
+  eternalfortune:
+    aliases: [ ef ]
