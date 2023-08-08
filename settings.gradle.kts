@@ -2,25 +2,32 @@ pluginManagement {
 	repositories {
 		gradlePluginPortal()
 		maven("https://repo.mineinabyss.com/releases")
-		maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-	}
-	plugins {
-		val kotlinVersion: String by settings
-		kotlin("jvm") version kotlinVersion
-		kotlin("plugin.serialization") version kotlinVersion
-		id("com.github.johnrengelman.shadow") version "6.0.0"
-		id("io.github.0ffz.github-packages") version "1.2.0"
+		maven("https://repo.papermc.io/repository/maven-public/")
+		mavenLocal()
 	}
 
-	val idofrontConventions: String by settings
+	val idofrontVersion: String by settings
 	resolutionStrategy {
 		eachPlugin {
 			if (requested.id.id.startsWith("com.mineinabyss.conventions"))
-				useVersion(idofrontConventions)
+				useVersion(idofrontVersion)
 		}
 	}
 }
 
-val pluginName: String by settings
+dependencyResolutionManagement {
+	val idofrontVersion: String by settings
 
-rootProject.name = "eternalfortune"
+	repositories {
+		maven("https://repo.mineinabyss.com/releases")
+		maven("https://repo.mineinabyss.com/snapshots")
+		mavenLocal()
+	}
+
+	versionCatalogs {
+		create("libs").from("com.mineinabyss:catalog:$idofrontVersion")
+		create("eLibs").from(files("gradle/eLibs.versions.toml"))
+	}
+}
+
+val pluginName: String by settings

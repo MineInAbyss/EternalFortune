@@ -1,48 +1,36 @@
-import Com_mineinabyss_conventions_platform_gradle.Deps
-
-val idofrontVersion: String by project
-val gearyPlatformVersion: String by project
-val deeperworldVersion: String by project
-val guiyVersion: String by project
-
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-	id("com.mineinabyss.conventions.kotlin")
-	id("com.mineinabyss.conventions.papermc")
-	id("com.mineinabyss.conventions.copyjar")
-	id("com.mineinabyss.conventions.publication")
-	kotlin("plugin.serialization")
+	alias(libs.plugins.mia.kotlin.jvm)
+	alias(libs.plugins.kotlinx.serialization)
+	alias(libs.plugins.mia.papermc)
+	alias(libs.plugins.mia.copyjar)
+	alias(libs.plugins.mia.nms)
+	alias(libs.plugins.mia.publication)
+	alias(libs.plugins.mia.autoversion)
 }
 
 repositories {
 	mavenCentral()
 	maven("https://repo.mineinabyss.com/releases")
-	maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+	maven("https://repo.mineinabyss.com/snapshots")
+	maven("https://repo.dmulloy2.net/repository/public") // ProtocolLib
 	maven("https://jitpack.io")
+	maven("https://repo.jeff-media.com/public") // PersistentDataSerializer
+	mavenLocal()
 }
 
 dependencies {
 	// MineInAbyss platform
-	compileOnly(Deps.kotlinx.serialization.json)
-	compileOnly(Deps.kotlinx.serialization.kaml)
-	compileOnly(Deps.minecraft.skedule)
+	compileOnly(libs.kotlinx.serialization.json)
+	compileOnly(libs.kotlinx.serialization.kaml)
+	compileOnly(libs.kotlinx.coroutines)
+	compileOnly(libs.minecraft.mccoroutine)
 
-	compileOnly(Deps.`sqlite-jdbc`) { isTransitive = false }
-	compileOnly(Deps.exposed.core) { isTransitive = false }
-	compileOnly(Deps.exposed.dao) { isTransitive = false }
-	compileOnly(Deps.exposed.jdbc) { isTransitive = false }
-	compileOnly(Deps.exposed.`java-time`) { isTransitive = false }
+	compileOnly(eLibs.geary.papermc)
+	compileOnly(eLibs.blocky)
+	compileOnly(libs.minecraft.plugin.modelengine)
+	compileOnly(libs.minecraft.plugin.protocollib)
 
-	// Geary platform
-	compileOnly(platform("com.mineinabyss:geary-platform:$gearyPlatformVersion"))
-	compileOnly("com.mineinabyss:geary-papermc-core")
-	compileOnly("com.mineinabyss:geary-commons-papermc")
-	compileOnly("com.mineinabyss:looty")
-
-	// Other plugins
-	compileOnly("com.mineinabyss:deeperworld:$deeperworldVersion")
-	compileOnly("com.mineinabyss:guiy-compose:$guiyVersion")
-
-	// Shaded
-	implementation("com.mineinabyss:idofront:$idofrontVersion")
-
+	implementation(libs.bundles.idofront.core)
+	implementation(libs.idofront.nms)
 }
