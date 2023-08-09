@@ -15,9 +15,11 @@ import com.mineinabyss.idofront.entities.toOfflinePlayer
 import com.mineinabyss.idofront.messaging.error
 import com.mineinabyss.idofront.messaging.logError
 import com.mineinabyss.idofront.messaging.success
+import com.mineinabyss.idofront.messaging.warn
 import com.mineinabyss.idofront.nms.nbt.WrappedPDC
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import dev.triumphteam.gui.guis.Gui
+import dev.triumphteam.gui.guis.GuiItem
 import dev.triumphteam.gui.guis.StorageGui
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
@@ -36,7 +38,7 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 object EternalHelpers {
-    fun Player.spawnGrave(drops: MutableList<ItemStack>, droppedExp: Int): Boolean {
+    fun Player.spawnGrave(drops: List<ItemStack>, droppedExp: Int): Boolean {
         val graveLocation = location.findNearestSpawnableBlock() ?: run { this.error(EternalMessages.NO_SPACE_FOR_GRAVE); return false }
         val grave = BlockyFurnitures.placeFurniture(eternal.config.graveFurniture, graveLocation) ?: run { this.error(EternalMessages.NO_SPACE_FOR_GRAVE); return false }
         val expirationDate = LocalDateTime.now().plusSeconds(eternal.config.expirationTime.inWholeSeconds).toEpochSecond(ZoneOffset.UTC)
@@ -68,14 +70,15 @@ object EternalHelpers {
     }
 
     private fun createGraveStorage(player: Player, baseEntity: ItemDisplay, grave: Grave): StorageGui {
-        return Gui.storage().title("Grave".miniMsg()).rows(3).create().apply {
-            this.addItem(grave.graveContent)
-            setCloseGuiAction { close ->
+        return Gui.storage().title("Grave".miniMsg()).rows(3).create().let { gui ->
+            grave.graveContent.forEachIndexed { index, itemStack ->  gui.setItem(index, GuiItem(itemStack)) }
+            gui.disableItemPlace()
+            gui.setCloseGuiAction { close ->
                 when {
                     close.inventory.isEmpty -> {
                         val owner = grave.graveOwner.toOfflinePlayer()
                         when {
-                            owner.isOnline -> owner.player!!.success(EternalMessages.GRAVE_EMPTIED)
+                            owner.isOnline -> owner.player!!.warn(EternalMessages.GRAVE_EMPTIED)
                             else -> {
                                 val pdc = owner.getOfflinePDC() ?: return@setCloseGuiAction logError("Could not get PDC for ${owner.name}")
                                 pdc.encode(GraveOfflineNotice(EternalMessages.GRAVE_EMPTIED))
@@ -88,6 +91,7 @@ object EternalHelpers {
                     else -> baseEntity.toGearyOrNull()?.setPersisting(grave.copy(graveContent = close.inventory.contents.filterNotNull()))
                 }
             }
+            gui
         }
     }
 }
