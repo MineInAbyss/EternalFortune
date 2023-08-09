@@ -7,3 +7,4 @@ geary-papermc = { module = "com.mineinabyss:geary-papermc", version.ref = "geary
 blocky = { module = "com.mineinabyss:blocky", version.ref = "blocky" }
 
 minecraft-plugin-customblockdata = "com.jeff_media:CustomBlockData:2.2.0"
+minecraft-plugin-triumph-gui = "dev.triumphteam:triumph-gui:3.1.5"

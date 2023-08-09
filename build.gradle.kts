@@ -16,6 +16,7 @@ repositories {
 	maven("https://repo.dmulloy2.net/repository/public") // ProtocolLib
 	maven("https://jitpack.io")
 	maven("https://repo.jeff-media.com/public") // PersistentDataSerializer
+	maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 	mavenLocal()
 }
 
@@ -28,6 +29,7 @@ dependencies {
 
 	compileOnly(eLibs.geary.papermc)
 	compileOnly(eLibs.blocky)
+	compileOnly(eLibs.minecraft.plugin.triumph.gui)
 	compileOnly(libs.minecraft.plugin.protocollib)
 
 	implementation(libs.bundles.idofront.core)
