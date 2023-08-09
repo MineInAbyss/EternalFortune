@@ -21,8 +21,12 @@ class PlayerListener : Listener {
         when {
             (player.playerGraves?.graveUuids?.size ?: 0) >= eternal.config.maxGraveCount ->
                 player.error(EternalMessages.HAS_GRAVE_ALREADY)
-            player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) != true ->
-                player.spawnGrave()
+            drops.isEmpty() -> return // Only spawn grave if there were items and drop EXP like normal
+            player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) != true -> {
+                if (!player.spawnGrave(drops, droppedExp)) return
+                drops.clear()
+                droppedExp = 0
+            }
         }
     }
 

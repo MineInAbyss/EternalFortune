@@ -14,6 +14,7 @@ import kotlin.time.Duration
 data class Grave(
     val graveOwner: @Serializable(UUIDSerializer::class) UUID,
     val graveContent: List<@Serializable(ItemStackSerializer::class) ItemStack>,
+    val graveExp: Int = 0,
     val expirationTime: Long,
     val protectionTime: Long,
 )

@@ -21,11 +21,8 @@ class GraveListener : Listener {
     fun BlockyFurnitureInteractEvent.onInteractGrave() {
         val grave = baseEntity.grave ?: return
         when {
-            grave.isExpired() -> {
-                grave.graveContent.forEach {
-                    player.world.dropItemNaturally(baseEntity.location, it)
-                }
-            }
+            grave.isExpired() ->
+                for (item in grave.graveContent) player.world.dropItemNaturally(baseEntity.location, item)
             //TODO Implement way for other plugins to configure this (MiA and Guilds)
             grave.graveOwner == player.uniqueId -> baseEntity.openGraveInventory(player)
         }

@@ -8,11 +8,10 @@ import com.mineinabyss.eternalfortune.components.GraveOfflineNotice
 import com.mineinabyss.eternalfortune.components.PlayerGraves
 import com.mineinabyss.eternalfortune.eternal
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.openGraveInventory
+import com.mineinabyss.eternalfortune.extensions.EternalHelpers.spawnGrave
 import com.mineinabyss.geary.papermc.datastore.encode
 import com.mineinabyss.geary.papermc.tracking.entities.toGearyOrNull
-import com.mineinabyss.geary.papermc.tracking.items.gearyItems
 import com.mineinabyss.idofront.entities.toOfflinePlayer
-import com.mineinabyss.idofront.entities.toPlayer
 import com.mineinabyss.idofront.messaging.error
 import com.mineinabyss.idofront.messaging.logError
 import com.mineinabyss.idofront.messaging.success
@@ -29,6 +28,7 @@ import org.bukkit.craftbukkit.v1_20_R1.CraftServer
 import org.bukkit.craftbukkit.v1_20_R1.persistence.CraftPersistentDataContainer
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import java.io.File
 import java.nio.file.Files
 import java.time.LocalDateTime
@@ -36,14 +36,15 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 object EternalHelpers {
-    fun Player.spawnGrave() {
-        val graveLocation = location.findNearestSpawnableBlock() ?: return this.error(EternalMessages.NO_SPACE_FOR_GRAVE)
-        val grave = BlockyFurnitures.placeFurniture(eternal.config.graveFurniture, graveLocation) ?: return this.error(EternalMessages.NO_SPACE_FOR_GRAVE)
+    fun Player.spawnGrave(drops: MutableList<ItemStack>, droppedExp: Int): Boolean {
+        val graveLocation = location.findNearestSpawnableBlock() ?: run { this.error(EternalMessages.NO_SPACE_FOR_GRAVE); return false }
+        val grave = BlockyFurnitures.placeFurniture(eternal.config.graveFurniture, graveLocation) ?: run { this.error(EternalMessages.NO_SPACE_FOR_GRAVE); return false }
         val expirationDate = LocalDateTime.now().plusSeconds(eternal.config.expirationTime.inWholeSeconds).toEpochSecond(ZoneOffset.UTC)
         val protectionDate = LocalDateTime.now().plusSeconds(eternal.config.protectionTime.inWholeSeconds).toEpochSecond(ZoneOffset.UTC)
-        grave.toGearyOrNull()?.setPersisting(Grave(uniqueId, inventory.contents.filterNotNull(), protectionDate, expirationDate)) ?: this.error("Could not fill grave with items")
+        grave.toGearyOrNull()?.setPersisting(Grave(uniqueId, drops, droppedExp, protectionDate, expirationDate)) ?: run { this.error(EternalMessages.FAILED_FILLING_GRAVE); return false }
 
         this.success("Grave spawned at ${graveLocation.blockX} ${graveLocation.blockY} ${graveLocation.blockZ}!")
+        return true
     }
 
     private fun Location.findNearestSpawnableBlock(): Location? {
@@ -62,30 +63,32 @@ object EternalHelpers {
 
     private val graveInvMap = mutableMapOf<UUID, StorageGui>()
     fun ItemDisplay.openGraveInventory(player: Player) {
-        val graveContent = grave?.graveContent ?: return
-        val graveInv = graveInvMap.getOrPut(uniqueId) {
-            Gui.storage().title("Grave".miniMsg()).rows(3).create().apply {
-                this.addItem(graveContent)
-                setCloseGuiAction { close ->
-                    when {
-                        close.inventory.isEmpty -> {
-                            val owner = grave!!.graveOwner.toOfflinePlayer()
-                            when {
-                                owner.isOnline -> owner.player!!.success(EternalMessages.GRAVE_EMPTIED)
-                                else -> {
-                                    val pdc = owner.getOfflinePDC() ?: return@setCloseGuiAction logError("Could not get PDC for ${owner.name}")
-                                    pdc.encode(GraveOfflineNotice(EternalMessages.GRAVE_EMPTIED))
-                                    owner.saveOfflinePDC(pdc)
-                                }
+        val graveInv = graveInvMap.getOrPut(uniqueId) { createGraveStorage(player, this, grave ?: return) }
+        graveInv.open(player)
+    }
+
+    private fun createGraveStorage(player: Player, baseEntity: ItemDisplay, grave: Grave): StorageGui {
+        return Gui.storage().title("Grave".miniMsg()).rows(3).create().apply {
+            this.addItem(grave.graveContent)
+            setCloseGuiAction { close ->
+                when {
+                    close.inventory.isEmpty -> {
+                        val owner = grave.graveOwner.toOfflinePlayer()
+                        when {
+                            owner.isOnline -> owner.player!!.success(EternalMessages.GRAVE_EMPTIED)
+                            else -> {
+                                val pdc = owner.getOfflinePDC() ?: return@setCloseGuiAction logError("Could not get PDC for ${owner.name}")
+                                pdc.encode(GraveOfflineNotice(EternalMessages.GRAVE_EMPTIED))
+                                owner.saveOfflinePDC(pdc)
                             }
-                            BlockyFurnitures.removeFurniture(this@openGraveInventory)
                         }
-                        else -> this@openGraveInventory.toGearyOrNull()?.setPersisting(grave!!.copy(graveContent = close.inventory.contents.filterNotNull()))
+                        player.giveExp(grave.graveExp)
+                        BlockyFurnitures.removeFurniture(baseEntity)
                     }
+                    else -> baseEntity.toGearyOrNull()?.setPersisting(grave.copy(graveContent = close.inventory.contents.filterNotNull()))
                 }
             }
         }
-        graveInv.open(player)
     }
 }
 
