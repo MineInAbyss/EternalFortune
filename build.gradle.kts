@@ -29,9 +29,9 @@ dependencies {
 
 	compileOnly(eLibs.geary.papermc)
 	compileOnly(eLibs.blocky)
-	compileOnly(eLibs.minecraft.plugin.triumph.gui)
 	compileOnly(libs.minecraft.plugin.protocollib)
 
 	implementation(libs.bundles.idofront.core)
 	implementation(libs.idofront.nms)
+	implementation(eLibs.minecraft.plugin.triumph.gui)
 }
