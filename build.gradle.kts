@@ -28,7 +28,6 @@ dependencies {
 
 	compileOnly(eLibs.geary.papermc)
 	compileOnly(eLibs.blocky)
-	compileOnly(libs.minecraft.plugin.modelengine)
 	compileOnly(libs.minecraft.plugin.protocollib)
 
 	implementation(libs.bundles.idofront.core)

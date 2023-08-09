@@ -12,5 +12,8 @@ import kotlin.time.Duration
 @Serializable
 @SerialName("eternalfortune:grave")
 class Grave(
-    val expirationTime: @Serializable(DurationSerializer::class) Duration,
+    val graveOwner: @Serializable(UUIDSerializer::class) UUID,
+    val graveContent: List<@Serializable(ItemStackSerializer::class) ItemStack>,
+    val expirationTime: Long,
+    val protectionTime: Long,
 )

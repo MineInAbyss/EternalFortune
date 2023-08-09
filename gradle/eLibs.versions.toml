@@ -1,9 +1,9 @@
 [versions]
 gearyPaper = "0.24.1"
-blocky = "0.6-SNAPSHOT"
+blocky = "0.6.5"
 
 [libraries]
 geary-papermc = { module = "com.mineinabyss:geary-papermc", version.ref = "gearyPaper" }
-blocky = { module = "com.mineinabyss:blocky", version = "blocky" }
+blocky = { module = "com.mineinabyss:blocky", version.ref = "blocky" }
 
 minecraft-plugin-customblockdata = "com.jeff_media:CustomBlockData:2.2.0"

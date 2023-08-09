@@ -1,1 +1,5 @@
-graveProtectionTime: 7d
+graveFurniture: "mineinabyss:bonfire"
+protectionTime: 7d
+expirationTime: 7d
+maxGraveCount: 1
+spawnRadius: 1
