@@ -12,5 +12,6 @@ data class EternalConfig(
     val maxGraveCount: Int,
     val protectionTime: @Serializable(DurationSerializer::class) Duration,
     val expirationTime: @Serializable(DurationSerializer::class) Duration,
-    val spawnRadiusCheck: Int
+    val spawnRadiusCheck: Int,
+    val ignoreKeepInv: Boolean
 )

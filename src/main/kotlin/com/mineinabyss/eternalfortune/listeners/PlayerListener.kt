@@ -8,6 +8,7 @@ import com.mineinabyss.eternalfortune.extensions.playerGraves
 import com.mineinabyss.geary.papermc.tracking.entities.toGeary
 import com.mineinabyss.idofront.messaging.error
 import com.mineinabyss.idofront.textcomponents.miniMsg
+import org.bukkit.GameRule
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
@@ -20,7 +21,7 @@ class PlayerListener : Listener {
         when {
             (player.playerGraves?.graveUuids?.size ?: 0) >= eternal.config.maxGraveCount ->
                 player.error(EternalMessages.HAS_GRAVE_ALREADY)
-            else -> player.spawnGrave()
+            player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) != true -> player.spawnGrave()
         }
     }
 

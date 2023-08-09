@@ -6,5 +6,5 @@ authors: [ boy0000 ]
 depend: [ Geary, Blocky ]
 
 commands:
-  eternalfortune:
+  eternal:
     aliases: [ ef ]

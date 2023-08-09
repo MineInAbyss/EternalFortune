@@ -3,6 +3,7 @@ package com.mineinabyss.eternalfortune
 import com.mineinabyss.blocky.api.BlockyFurnitures.isBlockyFurniture
 import com.mineinabyss.eternalfortune.listeners.GraveListener
 import com.mineinabyss.eternalfortune.listeners.PlayerListener
+import com.mineinabyss.geary.addons.GearyPhase
 import com.mineinabyss.geary.autoscan.autoscan
 import com.mineinabyss.geary.modules.geary
 import com.mineinabyss.idofront.config.config
@@ -21,11 +22,6 @@ class EternalFortune : JavaPlugin() {
     override fun onEnable() {
         registerEternalContext()
 
-        if (!eternal.config.graveFurniture.isBlockyFurniture) {
-            logError("The graveFurniture config option must be a BlockyFurniture!")
-            Bukkit.getPluginManager().disablePlugin(this)
-        }
-
         EternalCommands()
 
         listeners(GraveListener(), PlayerListener())
@@ -33,6 +29,12 @@ class EternalFortune : JavaPlugin() {
         geary {
             autoscan(classLoader, "com.mineinabyss.eternalfortune") {
                 all()
+            }
+            on(GearyPhase.ENABLE) {
+                if (!eternal.config.graveFurniture.isBlockyFurniture) {
+                    logError("The graveFurniture config option must be a BlockyFurniture!")
+                    Bukkit.getPluginManager().disablePlugin(this@EternalFortune)
+                }
             }
         }
     }
