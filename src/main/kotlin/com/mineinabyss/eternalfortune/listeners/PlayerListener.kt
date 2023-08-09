@@ -21,7 +21,8 @@ class PlayerListener : Listener {
         when {
             (player.playerGraves?.graveUuids?.size ?: 0) >= eternal.config.maxGraveCount ->
                 player.error(EternalMessages.HAS_GRAVE_ALREADY)
-            player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) != true -> player.spawnGrave()
+            player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) != true ->
+                player.spawnGrave()
         }
     }
 
