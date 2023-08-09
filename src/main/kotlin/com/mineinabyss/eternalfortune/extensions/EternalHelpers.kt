@@ -9,7 +9,10 @@ import com.mineinabyss.eternalfortune.components.PlayerGraves
 import com.mineinabyss.eternalfortune.eternal
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.openGraveInventory
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.spawnGrave
+import com.mineinabyss.geary.papermc.datastore.decode
 import com.mineinabyss.geary.papermc.datastore.encode
+import com.mineinabyss.geary.papermc.datastore.remove
+import com.mineinabyss.geary.papermc.tracking.entities.toGeary
 import com.mineinabyss.geary.papermc.tracking.entities.toGearyOrNull
 import com.mineinabyss.idofront.entities.toOfflinePlayer
 import com.mineinabyss.idofront.messaging.error
@@ -43,8 +46,10 @@ object EternalHelpers {
         val grave = BlockyFurnitures.placeFurniture(eternal.config.graveFurniture, graveLocation) ?: run { this.error(EternalMessages.NO_SPACE_FOR_GRAVE); return false }
         val expirationDate = LocalDateTime.now().plusSeconds(eternal.config.expirationTime.inWholeSeconds).toEpochSecond(ZoneOffset.UTC)
         val protectionDate = LocalDateTime.now().plusSeconds(eternal.config.protectionTime.inWholeSeconds).toEpochSecond(ZoneOffset.UTC)
-        grave.toGearyOrNull()?.setPersisting(Grave(uniqueId, drops, droppedExp, protectionDate, expirationDate)) ?: run { this.error(EternalMessages.FAILED_FILLING_GRAVE); return false }
+        val playerGraves = this.toGeary().get<PlayerGraves>() ?: PlayerGraves(emptyList(), emptyList())
 
+        this.toGeary().setPersisting(playerGraves.copy(graveUuids = playerGraves.graveUuids + grave.uniqueId, graveLocations = playerGraves.graveLocations + graveLocation))
+        grave.toGearyOrNull()?.setPersisting(Grave(uniqueId, drops, droppedExp, protectionDate, expirationDate)) ?: run { this.error(EternalMessages.FAILED_FILLING_GRAVE); return false }
         this.success("Grave spawned at ${graveLocation.blockX} ${graveLocation.blockY} ${graveLocation.blockZ}!")
         return true
     }
@@ -65,11 +70,12 @@ object EternalHelpers {
 
     private val graveInvMap = mutableMapOf<UUID, StorageGui>()
     fun ItemDisplay.openGraveInventory(player: Player) {
-        val graveInv = graveInvMap.getOrPut(uniqueId) { createGraveStorage(player, this, grave ?: return) }
+        val graveInv = graveInvMap.getOrPut(uniqueId) { createGraveStorage(player, this) ?: return }
         graveInv.open(player)
     }
 
-    private fun createGraveStorage(player: Player, baseEntity: ItemDisplay, grave: Grave): StorageGui {
+    private fun createGraveStorage(player: Player, baseEntity: ItemDisplay): StorageGui? {
+        val grave = baseEntity.grave ?: return null
         return Gui.storage().title("Grave".miniMsg()).rows(3).create().let { gui ->
             grave.graveContent.forEachIndexed { index, itemStack ->  gui.setItem(index, GuiItem(itemStack)) }
             gui.disableItemPlace()
@@ -78,10 +84,18 @@ object EternalHelpers {
                     close.inventory.isEmpty -> {
                         val owner = grave.graveOwner.toOfflinePlayer()
                         when {
-                            owner.isOnline -> owner.player!!.warn(EternalMessages.GRAVE_EMPTIED)
+                            owner.isOnline -> {
+                                owner.player!!.warn(EternalMessages.GRAVE_EMPTIED)
+                                player.toGeary().get<PlayerGraves>()?.let {
+                                    player.toGeary().setPersisting(it.copy(graveUuids = it.graveUuids - baseEntity.uniqueId, graveLocations = it.graveLocations - baseEntity.location))
+                                }
+                            }
                             else -> {
                                 val pdc = owner.getOfflinePDC() ?: return@setCloseGuiAction logError("Could not get PDC for ${owner.name}")
                                 pdc.encode(GraveOfflineNotice(EternalMessages.GRAVE_EMPTIED))
+                                pdc.decode<PlayerGraves>()?.let {
+                                    pdc.encode(it.copy(graveUuids = it.graveUuids - baseEntity.uniqueId, graveLocations = it.graveLocations - baseEntity.location))
+                                }
                                 owner.saveOfflinePDC(pdc)
                             }
                         }
