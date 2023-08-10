@@ -1,5 +1,6 @@
 package com.mineinabyss.eternalfortune.listeners
 
+import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import com.mineinabyss.blocky.api.BlockyFurnitures
 import com.mineinabyss.blocky.api.events.furniture.BlockyFurnitureBreakEvent
@@ -47,6 +48,16 @@ class GraveListener : Listener {
     fun BlockyFurnitureBreakEvent.onBreakGrave() {
         val grave = baseEntity.grave ?: return
         if (grave.isProtected() && grave.graveOwner == player.uniqueId) isCancelled = true
+    }
+
+    @EventHandler
+    fun EntityAddToWorldEvent.onLoadExpiredGrave() {
+        val itemDisplay = entity as? ItemDisplay ?: return
+        val grave = itemDisplay.grave ?: return
+        when {
+            !grave.isExpired() -> Bukkit.getOnlinePlayers().forEach { it.sendGraveTextDisplay(itemDisplay) }
+            else -> itemDisplay.remove()
+        }
     }
 
     @EventHandler
