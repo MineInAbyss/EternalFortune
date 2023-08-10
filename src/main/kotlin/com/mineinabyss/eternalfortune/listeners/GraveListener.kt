@@ -37,11 +37,16 @@ class GraveListener : Listener {
     fun BlockyFurnitureInteractEvent.onInteractGrave() {
         val grave = baseEntity.grave ?: return
         when {
-            grave.isExpired() ->
-                for (item in grave.graveContent) player.world.dropItemNaturally(baseEntity.location, item)
+            grave.isExpired() -> baseEntity.remove() // Mark for removal for EntityRemoveFromWorldEvent to handle
             //TODO Implement way for other plugins to configure this (MiA and Guilds)
-            grave.graveOwner == player.uniqueId -> player.openGraveInventory(baseEntity)
+            !grave.isProtected() || grave.graveOwner == player.uniqueId -> player.openGraveInventory(baseEntity)
         }
+    }
+
+    @EventHandler
+    fun BlockyFurnitureBreakEvent.onBreakGrave() {
+        val grave = baseEntity.grave ?: return
+        if (grave.isProtected() && grave.graveOwner == player.uniqueId) isCancelled = true
     }
 
     @EventHandler

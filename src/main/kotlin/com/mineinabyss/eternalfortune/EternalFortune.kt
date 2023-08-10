@@ -2,6 +2,7 @@ package com.mineinabyss.eternalfortune
 
 import com.mineinabyss.blocky.api.BlockyFurnitures.isBlockyFurniture
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers
+import com.mineinabyss.eternalfortune.extensions.EternalMessages
 import com.mineinabyss.eternalfortune.extensions.interactionHitboxIdMap
 import com.mineinabyss.eternalfortune.extensions.removeGraveTextDisplay
 import com.mineinabyss.eternalfortune.listeners.GraveListener
@@ -51,6 +52,7 @@ class EternalFortune : JavaPlugin() {
         DI.add<EternalContext>(object : EternalContext {
             override val plugin = this@EternalFortune
             override val config: EternalConfig by config("config") { fromPluginPath(loadDefault = true) }
+            override val messages: EternalMessages by config("messages") { fromPluginPath(loadDefault = true) }
         })
     }
 }

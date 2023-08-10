@@ -1,6 +1,8 @@
 package com.mineinabyss.eternalfortune.extensions
 
 import com.comphenix.protocol.events.PacketContainer
+import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
+import com.github.shynixn.mccoroutine.bukkit.launch
 import com.mineinabyss.blocky.api.BlockyFurnitures
 import com.mineinabyss.blocky.api.BlockyFurnitures.blockyFurniture
 import com.mineinabyss.blocky.helpers.FurnitureHelpers
@@ -25,6 +27,7 @@ import com.mineinabyss.protocolburrito.dsl.sendTo
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
 import it.unimi.dsi.fastutil.ints.IntList
+import kotlinx.coroutines.delay
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -60,9 +63,9 @@ import kotlin.time.ExperimentalTime
 object EternalHelpers {
     fun Player.spawnGrave(drops: List<ItemStack>, droppedExp: Int): Boolean {
         val graveLocation =
-            location.findNearestSpawnableBlock() ?: run { this.error(EternalMessages.NO_SPACE_FOR_GRAVE); return false }
+            location.findNearestSpawnableBlock() ?: run { this.error(eternal.messages.NO_SPACE_FOR_GRAVE); return false }
         val grave = BlockyFurnitures.placeFurniture(eternal.config.graveFurniture, graveLocation) ?: run {
-            this.error(EternalMessages.NO_SPACE_FOR_GRAVE); return false
+            this.error(eternal.messages.NO_SPACE_FOR_GRAVE); return false
         }
         val expirationDate =
             LocalDateTime.now().plusSeconds(eternal.config.expirationTime.inWholeSeconds).toEpochSecond(ZoneOffset.UTC)
@@ -77,7 +80,7 @@ object EternalHelpers {
             )
         )
         grave.toGearyOrNull()?.setPersisting(Grave(uniqueId, drops, droppedExp, protectionDate, expirationDate))
-            ?: run { this.error(EternalMessages.FAILED_FILLING_GRAVE); return false }
+            ?: run { this.error(eternal.messages.FAILED_FILLING_GRAVE); return false }
         this.success("Grave spawned at ${graveLocation.blockX} ${graveLocation.blockY} ${graveLocation.blockZ}!")
         Bukkit.getOnlinePlayers().forEach {
             it.sendGraveTextDisplay(grave)
@@ -120,18 +123,18 @@ object EternalHelpers {
                     close.inventory.isEmpty -> {
                         val owner = grave.graveOwner.toOfflinePlayer()
                         when {
-                            owner.isOnline -> owner.player!!.warn(EternalMessages.GRAVE_EMPTIED)
+                            owner.isOnline -> owner.player!!.warn(eternal.messages.GRAVE_EMPTIED)
                             else -> {
                                 val pdc = owner.getOfflinePDC()
                                     ?: return@setCloseGuiAction logError("Could not get PDC for ${owner.name}")
-                                pdc.encode(GraveOfflineNotice(EternalMessages.GRAVE_EMPTIED))
+                                pdc.encode(GraveOfflineNotice(eternal.messages.GRAVE_EMPTIED))
                                 owner.saveOfflinePDC(pdc)
                             }
                         }
                         owner.removeGraveFromPlayerGraves(baseEntity)
                         player.giveExp(grave.graveExp)
                         baseEntity.toGearyOrNull()?.setPersisting(grave.copy(graveContent = emptyList(), graveExp = 0))
-                        BlockyFurnitures.removeFurniture(baseEntity)
+                        baseEntity.remove()
                     }
 
                     else -> baseEntity.toGearyOrNull()
@@ -145,7 +148,6 @@ object EternalHelpers {
 
 val ItemDisplay.isGrave get() = toGearyOrNull()?.has<Grave>() == true
 val ItemDisplay.grave get() = toGearyOrNull()?.get<Grave>()
-fun Grave.isExpired() = expirationTime < currentTime()
 
 
 fun currentTime() = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
@@ -208,7 +210,6 @@ fun Location.ensureWorldIsLoaded() {
 
 val interactionHitboxIdMap = mutableMapOf<UUID, Int>()
 
-@OptIn(ExperimentalTime::class)
 fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
     val entityId = interactionHitboxIdMap.computeIfAbsent(baseEntity.uniqueId) { Entity.nextEntityId() }
     val loc = baseEntity.location.toBlockCenterLocation().add(0.0, eternal.config.textDisplayOffset, 0.0)
@@ -219,19 +220,29 @@ fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
     )
 
     PacketContainer.fromPacket(textDisplayPacket).sendTo(this)
+    eternal.plugin.launch(eternal.plugin.asyncDispatcher) {
+        do {
+            sendGraveText(baseEntity, entityId)
+            delay(1.seconds)
+        } while (baseEntity.isGrave && baseEntity.grave!!.protectionTime > currentTime())
+    }
+}
+
+@OptIn(ExperimentalTime::class)
+fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
     fun formatDuration(duration: Duration): String {
         val hours = duration.inWholeHours
         val minutes = duration.minus(hours.hours).inWholeMinutes
         val seconds = duration.minus(hours.hours).minus(minutes.minutes).inWholeSeconds
-        return String.format("%02dh:%02dm:%02ds", hours, minutes, seconds)
+        return (if (seconds.seconds.isPositive()) "<red>" else "<green>") + String.format("%02dh:%02dm:%02ds", hours, minutes, seconds)
     }
-    fun convertTime(duration: Long) = formatDuration(Duration.convert((duration - currentTime()).toDouble(), DurationUnit.SECONDS, DurationUnit.SECONDS).seconds)
+    fun convertTime(duration: Long) = formatDuration(Duration.convert((maxOf(duration - currentTime(), 0)).toDouble(), DurationUnit.SECONDS, DurationUnit.SECONDS).seconds)
     val tagResolver = TagResolver.resolver(
         TagResolver.resolver("player", Tag.inserting(baseEntity.grave!!.graveOwner.toOfflinePlayer().name.toString().miniMsg())),
         TagResolver.resolver("protection", Tag.inserting(convertTime(baseEntity.grave!!.protectionTime).miniMsg())),
         TagResolver.resolver("expiration", Tag.inserting(convertTime(baseEntity.grave!!.expirationTime).miniMsg())),
     )
-    val text = LegacyComponentSerializer.legacySection().serialize(EternalMessages.GRAVE_TEXT.trimIndent().miniMsg(tagResolver))
+    val text = LegacyComponentSerializer.legacySection().serialize(eternal.messages.GRAVE_TEXT.trimIndent().miniMsg(tagResolver))
 
     // Set flags using bitwise operations
     var bitmask = 0
@@ -247,7 +258,7 @@ fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
                 SynchedEntityData.DataValue(26, EntityDataSerializers.BYTE, bitmask.toByte())
             )
         )
-    ).sendTo(this@sendGraveTextDisplay)
+    ).sendTo(this@sendGraveText)
 }
 
 fun removeGraveTextDisplay(baseEntity: ItemDisplay) {

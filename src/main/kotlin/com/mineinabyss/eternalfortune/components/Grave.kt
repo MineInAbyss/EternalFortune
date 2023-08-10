@@ -1,5 +1,6 @@
 package com.mineinabyss.eternalfortune.components
 
+import com.mineinabyss.eternalfortune.extensions.currentTime
 import com.mineinabyss.idofront.serialization.DurationSerializer
 import com.mineinabyss.idofront.serialization.ItemStackSerializer
 import com.mineinabyss.idofront.serialization.UUIDSerializer
@@ -17,4 +18,7 @@ data class Grave(
     val graveExp: Int = 0,
     val expirationTime: Long,
     val protectionTime: Long,
-)
+) {
+    fun isExpired() = expirationTime < currentTime()
+    fun isProtected() = protectionTime > currentTime()
+}

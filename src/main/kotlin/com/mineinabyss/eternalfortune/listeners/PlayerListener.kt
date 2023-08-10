@@ -38,7 +38,7 @@ class PlayerListener : Listener {
     fun PlayerDeathEvent.onPlayerDeath() {
         when {
             (player.playerGraves?.graveUuids?.size ?: 0) >= eternal.config.maxGraveCount ->
-                player.error(EternalMessages.HAS_GRAVE_ALREADY)
+                player.error(eternal.messages.HAS_GRAVE_ALREADY)
             drops.isEmpty() -> return // Only spawn grave if there were items and drop EXP like normal
             player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) != true -> {
                 // Clone list otherwise .clear() removes content somehow

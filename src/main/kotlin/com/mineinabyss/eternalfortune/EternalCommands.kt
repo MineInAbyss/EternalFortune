@@ -58,7 +58,7 @@ class EternalCommands : IdofrontCommandExecutor(), TabCompleter {
                                 if (graveEntity.grave?.graveContent?.isNotEmpty() == true)
                                     for (item in graveEntity.grave!!.graveContent)
                                         graveEntity.world.dropItemNaturally(graveEntity.location, item)
-                                BlockyFurnitures.removeFurniture(graveEntity)
+                                graveEntity.remove()
 
                                 // Remove the grave from the player's data
                                 player.removeGraveFromPlayerGraves(uuid, loc)
