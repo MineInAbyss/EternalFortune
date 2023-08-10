@@ -1,9 +1,6 @@
 package com.mineinabyss.eternalfortune.extensions
 
 import com.comphenix.protocol.events.PacketContainer
-import com.comphenix.protocol.wrappers.WrappedChatComponent
-import com.github.shynixn.mccoroutine.bukkit.launch
-import com.github.shynixn.mccoroutine.bukkit.ticks
 import com.mineinabyss.blocky.api.BlockyFurnitures
 import com.mineinabyss.blocky.api.BlockyFurnitures.blockyFurniture
 import com.mineinabyss.blocky.helpers.FurnitureHelpers
@@ -24,17 +21,10 @@ import com.mineinabyss.idofront.messaging.success
 import com.mineinabyss.idofront.messaging.warn
 import com.mineinabyss.idofront.nms.nbt.WrappedPDC
 import com.mineinabyss.idofront.textcomponents.miniMsg
-import com.mineinabyss.idofront.textcomponents.serialize
 import com.mineinabyss.protocolburrito.dsl.sendTo
-import com.soywiz.kds.intArrayListOf
-import com.soywiz.kds.toIntList
 import dev.triumphteam.gui.guis.Gui
-import dev.triumphteam.gui.guis.GuiItem
 import dev.triumphteam.gui.guis.StorageGui
-import io.papermc.paper.adventure.providers.LegacyComponentSerializerProviderImpl
 import it.unimi.dsi.fastutil.ints.IntList
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.yield
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
@@ -47,12 +37,8 @@ import net.minecraft.network.syncher.SynchedEntityData
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.phys.Vec3
-import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.OfflinePlayer
-import org.bukkit.WorldCreator
+import org.bukkit.*
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer
-import org.bukkit.craftbukkit.v1_20_R1.persistence.CraftPersistentDataContainer
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -64,6 +50,7 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
+
 
 object EternalHelpers {
     fun Player.spawnGrave(drops: List<ItemStack>, droppedExp: Int): Boolean {
@@ -219,7 +206,7 @@ val interactionHitboxIdMap = mutableMapOf<UUID, Int>()
 @OptIn(ExperimentalTime::class)
 fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
     val entityId = interactionHitboxIdMap.computeIfAbsent(baseEntity.uniqueId) { Entity.nextEntityId() }
-    val loc = baseEntity.location.toBlockCenterLocation().add(0.0, 1.0, 0.0)
+    val loc = baseEntity.location.toBlockCenterLocation().add(0.0, eternal.config.textDisplayOffset, 0.0)
     val textDisplayPacket = ClientboundAddEntityPacket(
         entityId, UUID.randomUUID(),
         loc.x, loc.y, loc.z, loc.pitch, loc.yaw,
@@ -247,11 +234,20 @@ fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
         }
             """.trimIndent().miniMsg()
     )
+
+    // Set flags using bitwise operations
+    var bitmask = 0
+    bitmask = bitmask or 0x01 // Set bit 0 (Has shadow)
+    bitmask = bitmask or 0x02 // Set bit 1 (Is see through)
+    bitmask = bitmask or (0 and 0x0F shl 3) // Set alignment to CENTER (0)
+
     PacketContainer.fromPacket(
         ClientboundSetEntityDataPacket(
             entityId, listOf(
+                SynchedEntityData.DataValue(14, EntityDataSerializers.BYTE, 1), // Billboard
                 SynchedEntityData.DataValue(22, EntityDataSerializers.COMPONENT, Component.literal(text)),
-                SynchedEntityData.DataValue(25, EntityDataSerializers.INT, 1),
+                SynchedEntityData.DataValue(24, EntityDataSerializers.INT, Color.fromARGB(0,0,0,0).asARGB()), // Transparent background
+                SynchedEntityData.DataValue(26, EntityDataSerializers.BYTE, bitmask.toByte())
             )
         )
     ).sendTo(this@sendGraveTextDisplay)

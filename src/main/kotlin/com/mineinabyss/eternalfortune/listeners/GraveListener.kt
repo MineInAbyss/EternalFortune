@@ -46,7 +46,7 @@ class GraveListener : Listener {
 
     @EventHandler
     fun EntityRemoveFromWorldEvent.onDeathGrave() {
-        if (!entity.isDead) return
+        if (!entity.isDead) return // If furniture isn't being removed, ignore
         val grave = (entity as? ItemDisplay)?.grave ?: return
         for (item in grave.graveContent) entity.world.dropItemNaturally(entity.location, item)
         if (grave.graveExp > 0) (entity.world.spawnEntity(entity.location, EntityType.EXPERIENCE_ORB) as? ExperienceOrb)?.experience = grave.graveExp
