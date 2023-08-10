@@ -29,6 +29,7 @@ import net.minecraft.nbt.NbtIo
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.OfflinePlayer
+import org.bukkit.WorldCreator
 import org.bukkit.craftbukkit.v1_20_R1.CraftServer
 import org.bukkit.craftbukkit.v1_20_R1.persistence.CraftPersistentDataContainer
 import org.bukkit.entity.ItemDisplay
@@ -69,9 +70,9 @@ object EternalHelpers {
     }
 
     private val graveInvMap = mutableMapOf<UUID, StorageGui>()
-    fun ItemDisplay.openGraveInventory(player: Player) {
-        val graveInv = graveInvMap.getOrPut(uniqueId) { createGraveStorage(player, this) ?: return }
-        graveInv.open(player)
+    fun Player.openGraveInventory(baseEntity: ItemDisplay) {
+        val graveInv = graveInvMap.getOrPut(uniqueId) { createGraveStorage(this, baseEntity) ?: return }
+        graveInv.open(this)
     }
 
     private fun createGraveStorage(player: Player, baseEntity: ItemDisplay): StorageGui? {
@@ -160,4 +161,11 @@ fun OfflinePlayer.saveOfflinePDC(pdc: WrappedPDC): Boolean {
         return false
     }
     return true
+}
+
+
+fun Location.ensureWorldIsLoaded() {
+    if (Bukkit.isTickingWorlds()) ensureWorldIsLoaded()
+    else if (!isWorldLoaded) Bukkit.createWorld(WorldCreator.ofKey(world.key))
+
 }

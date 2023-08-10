@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerJoinEvent
+import java.util.*
 
 class PlayerListener : Listener {
 
@@ -23,7 +24,8 @@ class PlayerListener : Listener {
                 player.error(EternalMessages.HAS_GRAVE_ALREADY)
             drops.isEmpty() -> return // Only spawn grave if there were items and drop EXP like normal
             player.world.getGameRuleValue(GameRule.KEEP_INVENTORY) != true -> {
-                if (!player.spawnGrave(drops, droppedExp)) return
+                // Clone list otherwise .clear() removes content somehow
+                if (!player.spawnGrave(listOf(drops).flatten(), droppedExp)) return
                 drops.clear()
                 droppedExp = 0
             }

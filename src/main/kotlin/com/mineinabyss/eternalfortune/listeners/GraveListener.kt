@@ -24,7 +24,7 @@ class GraveListener : Listener {
             grave.isExpired() ->
                 for (item in grave.graveContent) player.world.dropItemNaturally(baseEntity.location, item)
             //TODO Implement way for other plugins to configure this (MiA and Guilds)
-            grave.graveOwner == player.uniqueId -> baseEntity.openGraveInventory(player)
+            grave.graveOwner == player.uniqueId -> player.openGraveInventory(baseEntity)
         }
     }
 }
