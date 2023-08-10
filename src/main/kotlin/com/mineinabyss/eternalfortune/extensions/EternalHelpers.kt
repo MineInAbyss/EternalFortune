@@ -7,11 +7,8 @@ import com.mineinabyss.eternalfortune.components.Grave
 import com.mineinabyss.eternalfortune.components.GraveOfflineNotice
 import com.mineinabyss.eternalfortune.components.PlayerGraves
 import com.mineinabyss.eternalfortune.eternal
-import com.mineinabyss.eternalfortune.extensions.EternalHelpers.openGraveInventory
-import com.mineinabyss.eternalfortune.extensions.EternalHelpers.spawnGrave
 import com.mineinabyss.geary.papermc.datastore.decode
 import com.mineinabyss.geary.papermc.datastore.encode
-import com.mineinabyss.geary.papermc.datastore.remove
 import com.mineinabyss.geary.papermc.tracking.entities.toGeary
 import com.mineinabyss.geary.papermc.tracking.entities.toGearyOrNull
 import com.mineinabyss.idofront.entities.toOfflinePlayer
@@ -39,7 +36,7 @@ import java.io.File
 import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.util.UUID
+import java.util.*
 
 object EternalHelpers {
     fun Player.spawnGrave(drops: List<ItemStack>, droppedExp: Int): Boolean {
