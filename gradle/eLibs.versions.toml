@@ -1,10 +1,12 @@
 [versions]
 gearyPaper = "0.24.1"
-blocky = "0.6.6"
+blocky = "0.6.7"
+protocolburrito="0.7.0"
 
 [libraries]
 geary-papermc = { module = "com.mineinabyss:geary-papermc", version.ref = "gearyPaper" }
 blocky = { module = "com.mineinabyss:blocky", version.ref = "blocky" }
+protocolburrito = { module = "com.mineinabyss:protocolburrito", version.ref = "protocolburrito" }
 
 minecraft-plugin-customblockdata = "com.jeff_media:CustomBlockData:2.2.0"
 minecraft-plugin-triumph-gui = "dev.triumphteam:triumph-gui:3.1.5"
