@@ -5,4 +5,10 @@ object EternalMessages {
     val HAS_GRAVE_ALREADY = "You already have a grave!"
     val GRAVE_EMPTIED = "Your grave has been emptied and removed"
     val FAILED_FILLING_GRAVE = "Failed to fill grave with items and experience"
+
+    val GRAVE_TEXT = """
+        <yellow>Grave of <gold><player>
+        <gray>Expires in <red><expiration>
+        <gray>Protected for <red><protection>
+    """.trimIndent()
 }

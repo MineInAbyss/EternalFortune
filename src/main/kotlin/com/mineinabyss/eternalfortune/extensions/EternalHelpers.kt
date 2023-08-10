@@ -25,6 +25,8 @@ import com.mineinabyss.protocolburrito.dsl.sendTo
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
 import it.unimi.dsi.fastutil.ints.IntList
+import net.kyori.adventure.text.minimessage.tag.Tag
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
@@ -48,6 +50,9 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 
@@ -214,31 +219,23 @@ fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
     )
 
     PacketContainer.fromPacket(textDisplayPacket).sendTo(this)
-    //TODO Move into EternalMessages
-    val text = LegacyComponentSerializer.legacySection().serialize(
-        """
-               <yellow>Grave Owner: ${baseEntity.grave!!.graveOwner.toOfflinePlayer().name}
-               <green>Protection Time: ${
-            Duration.convert(
-                (baseEntity.grave!!.protectionTime - currentTime()).toDouble(),
-                DurationUnit.SECONDS,
-                DurationUnit.SECONDS
-            )
-        }
-               <red>Expiration Time: ${
-            Duration.convert(
-                (baseEntity.grave!!.expirationTime - currentTime()).toDouble(),
-                DurationUnit.SECONDS,
-                DurationUnit.SECONDS
-            )
-        }
-            """.trimIndent().miniMsg()
+    fun formatDuration(duration: Duration): String {
+        val hours = duration.inWholeHours
+        val minutes = duration.minus(hours.hours).inWholeMinutes
+        val seconds = duration.minus(hours.hours).minus(minutes.minutes).inWholeSeconds
+        return String.format("%02dh:%02dm:%02ds", hours, minutes, seconds)
+    }
+    fun convertTime(duration: Long) = formatDuration(Duration.convert((duration - currentTime()).toDouble(), DurationUnit.SECONDS, DurationUnit.SECONDS).seconds)
+    val tagResolver = TagResolver.resolver(
+        TagResolver.resolver("player", Tag.inserting(baseEntity.grave!!.graveOwner.toOfflinePlayer().name.toString().miniMsg())),
+        TagResolver.resolver("protection", Tag.inserting(convertTime(baseEntity.grave!!.protectionTime).miniMsg())),
+        TagResolver.resolver("expiration", Tag.inserting(convertTime(baseEntity.grave!!.expirationTime).miniMsg())),
     )
+    val text = LegacyComponentSerializer.legacySection().serialize(EternalMessages.GRAVE_TEXT.trimIndent().miniMsg(tagResolver))
 
     // Set flags using bitwise operations
     var bitmask = 0
     bitmask = bitmask or 0x01 // Set bit 0 (Has shadow)
-    bitmask = bitmask or 0x02 // Set bit 1 (Is see through)
     bitmask = bitmask or (0 and 0x0F shl 3) // Set alignment to CENTER (0)
 
     PacketContainer.fromPacket(
