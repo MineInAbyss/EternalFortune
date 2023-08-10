@@ -3,6 +3,7 @@ package com.mineinabyss.eternalfortune.extensions
 import com.comphenix.protocol.events.PacketContainer
 import com.github.shynixn.mccoroutine.bukkit.asyncDispatcher
 import com.github.shynixn.mccoroutine.bukkit.launch
+import com.github.shynixn.mccoroutine.bukkit.minecraftDispatcher
 import com.mineinabyss.blocky.api.BlockyFurnitures
 import com.mineinabyss.blocky.api.BlockyFurnitures.blockyFurniture
 import com.mineinabyss.blocky.helpers.FurnitureHelpers
@@ -28,6 +29,7 @@ import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
 import it.unimi.dsi.fastutil.ints.IntList
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -224,7 +226,11 @@ fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
         do {
             sendGraveText(baseEntity, entityId)
             delay(1.seconds)
-        } while (baseEntity.isGrave && baseEntity.grave!!.protectionTime > currentTime())
+            if (baseEntity.grave?.isExpired() == true) break
+        } while (!baseEntity.isDead)
+        withContext(eternal.plugin.minecraftDispatcher) {
+            baseEntity.remove()
+        }
     }
 }
 
