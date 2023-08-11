@@ -5,4 +5,4 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("eternalfortune:grave_offline_notice")
-data class GraveOfflineNotice(val message: String)
+data class GraveOfflineNotice(val messages: List<String>)

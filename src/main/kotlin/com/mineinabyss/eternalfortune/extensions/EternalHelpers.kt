@@ -127,9 +127,9 @@ object EternalHelpers {
                         when {
                             owner.isOnline -> owner.player!!.warn(eternal.messages.GRAVE_EMPTIED)
                             else -> {
-                                val pdc = owner.getOfflinePDC()
-                                    ?: return@setCloseGuiAction logError("Could not get PDC for ${owner.name}")
-                                pdc.encode(GraveOfflineNotice(eternal.messages.GRAVE_EMPTIED))
+                                val pdc = owner.getOfflinePDC() ?: return@setCloseGuiAction logError("Could not get PDC for ${owner.name}")
+                                val messages = pdc.decode<GraveOfflineNotice>() ?: GraveOfflineNotice(emptyList())
+                                pdc.encode(messages.copy(messages = messages.messages + eternal.messages.GRAVE_EMPTIED))
                                 owner.saveOfflinePDC(pdc)
                             }
                         }
@@ -210,10 +210,9 @@ fun Location.ensureWorldIsLoaded() {
 
 }
 
-val interactionHitboxIdMap = mutableMapOf<UUID, Int>()
-
+val textDisplayIDMap = mutableMapOf<UUID, Int>()
 fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
-    val entityId = interactionHitboxIdMap.computeIfAbsent(baseEntity.uniqueId) { Entity.nextEntityId() }
+    val entityId = textDisplayIDMap.computeIfAbsent(baseEntity.uniqueId) { Entity.nextEntityId() }
     val loc = baseEntity.location.toBlockCenterLocation().add(0.0, eternal.config.textDisplayOffset, 0.0)
     val textDisplayPacket = ClientboundAddEntityPacket(
         entityId, UUID.randomUUID(),
@@ -240,7 +239,7 @@ fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
         val hours = duration.inWholeHours
         val minutes = duration.minus(hours.hours).inWholeMinutes
         val seconds = duration.minus(hours.hours).minus(minutes.minutes).inWholeSeconds
-        return (if (seconds.seconds.isPositive()) "<red>" else "<green>") + String.format("%02dh:%02dm:%02ds", hours, minutes, seconds)
+        return "${if (duration.isPositive()) "<red>" else "<green>"}${hours}h:${minutes}m:${seconds}s"
     }
     fun convertTime(duration: Long) = formatDuration(Duration.convert((maxOf(duration - currentTime(), 0)).toDouble(), DurationUnit.SECONDS, DurationUnit.SECONDS).seconds)
     val tagResolver = TagResolver.resolver(
@@ -267,14 +266,11 @@ fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
     ).sendTo(this@sendGraveText)
 }
 
-fun removeGraveTextDisplay(baseEntity: ItemDisplay) {
-    val entityId = interactionHitboxIdMap.remove(baseEntity.uniqueId) ?: return
-    val destroyPacket = ClientboundRemoveEntitiesPacket(IntList.of(entityId))
-    Bukkit.getOnlinePlayers().forEach { PacketContainer.fromPacket(destroyPacket).sendTo(it) }
-}
+fun removeGraveTextDisplay(baseEntity: ItemDisplay) =
+    textDisplayIDMap.remove(baseEntity.uniqueId)?.let { removeGraveTextDisplay(it) }
 
 fun removeGraveTextDisplay(entityId: Int) {
-    interactionHitboxIdMap.entries.removeIf { it.value == entityId }
+    textDisplayIDMap.entries.removeIf { it.value == entityId }
     val destroyPacket = ClientboundRemoveEntitiesPacket(IntList.of(entityId))
     Bukkit.getOnlinePlayers().forEach { PacketContainer.fromPacket(destroyPacket).sendTo(it) }
 }
@@ -306,6 +302,8 @@ fun OfflinePlayer.removeGraveFromPlayerGraves(uuid: UUID, loc: Location) {
                         )
                     )
                 }
+                val messages = pdc.decode<GraveOfflineNotice>() ?: GraveOfflineNotice(emptyList())
+                pdc.encode(messages.copy(messages = messages.messages + eternal.messages.GRAVE_EXPIRED))
                 saveOfflinePDC(pdc)
             }
         }

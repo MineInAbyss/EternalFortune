@@ -1,10 +1,9 @@
 package com.mineinabyss.eternalfortune
 
 import com.mineinabyss.blocky.api.BlockyFurnitures.isBlockyFurniture
-import com.mineinabyss.eternalfortune.extensions.EternalHelpers
 import com.mineinabyss.eternalfortune.extensions.EternalMessages
-import com.mineinabyss.eternalfortune.extensions.interactionHitboxIdMap
 import com.mineinabyss.eternalfortune.extensions.removeGraveTextDisplay
+import com.mineinabyss.eternalfortune.extensions.textDisplayIDMap
 import com.mineinabyss.eternalfortune.listeners.GraveListener
 import com.mineinabyss.eternalfortune.listeners.PlayerListener
 import com.mineinabyss.geary.addons.GearyPhase
@@ -44,7 +43,7 @@ class EternalFortune : JavaPlugin() {
     }
 
     override fun onDisable() {
-        interactionHitboxIdMap.values.forEach(::removeGraveTextDisplay)
+        textDisplayIDMap.values.forEach(::removeGraveTextDisplay)
     }
 
     fun registerEternalContext() {
