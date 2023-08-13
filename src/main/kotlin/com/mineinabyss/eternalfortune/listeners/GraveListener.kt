@@ -59,13 +59,18 @@ class GraveListener : Listener {
     @EventHandler
     fun EntityRemoveFromWorldEvent.onDeathGrave() {
         if (!entity.isDead) return // If furniture isn't being removed, ignore
-        val grave = (entity as? ItemDisplay)?.grave ?: return
-        for (item in grave.graveContent) entity.world.dropItemNaturally(entity.location, item)
+        val itemDisplay = entity as? ItemDisplay ?: return
+        val gui = graveInvMap[itemDisplay.uniqueId]
+        val grave = itemDisplay.grave ?: return
+        val content = gui?.inventory?.contents?.toList()?.filterNotNull() ?: grave.graveContent
+
+        for (viewer in gui?.inventory?.viewers ?: emptyList()) gui?.close(viewer)
+        for (item in content) entity.world.dropItemNaturally(entity.location, item)
         if (grave.graveExp > 0) (entity.world.spawnEntity(entity.location, EntityType.EXPERIENCE_ORB) as? ExperienceOrb)?.experience = grave.graveExp
         graveInvMap.remove(entity.uniqueId)
 
-        grave.graveOwner.toOfflinePlayer().removeGraveFromPlayerGraves(entity as ItemDisplay)
-        removeGraveTextDisplay(entity as ItemDisplay)
-        BlockyFurnitures.removeFurniture(entity as ItemDisplay)
+        grave.graveOwner.toOfflinePlayer().removeGraveFromPlayerGraves(itemDisplay)
+        removeGraveTextDisplay(itemDisplay)
+        BlockyFurnitures.removeFurniture(itemDisplay)
     }
 }
