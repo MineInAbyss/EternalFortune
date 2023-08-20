@@ -32,7 +32,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.NbtIo
 import net.minecraft.network.chat.Component
@@ -106,7 +106,7 @@ object EternalHelpers {
                         this.add(x.toDouble(), y.toDouble(), z.toDouble())
                 null
             }
-        }
+        }.apply { pitch = 0f }
     }
 
     internal val graveInvMap = mutableMapOf<UUID, StorageGui>()
@@ -243,11 +243,13 @@ fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
     }
     fun convertTime(duration: Long) = formatDuration(Duration.convert((maxOf(duration - currentTime(), 0)).toDouble(), DurationUnit.SECONDS, DurationUnit.SECONDS).seconds)
     val tagResolver = TagResolver.resolver(
-        TagResolver.resolver("player", Tag.inserting(baseEntity.grave!!.graveOwner.toOfflinePlayer().name.toString().miniMsg())),
-        TagResolver.resolver("protection", Tag.inserting(convertTime(baseEntity.grave!!.protectionTime).miniMsg())),
-        TagResolver.resolver("expiration", Tag.inserting(convertTime(baseEntity.grave!!.expirationTime).miniMsg())),
+        TagResolver.resolver("player", Tag.inserting((baseEntity.grave?.graveOwner?.toOfflinePlayer()?.name ?: "").miniMsg())),
+        TagResolver.resolver("protection", Tag.inserting(convertTime(baseEntity.grave?.protectionTime ?: 0).miniMsg())),
+        TagResolver.resolver("expiration", Tag.inserting(convertTime(baseEntity.grave?.expirationTime ?: 0).miniMsg())),
     )
-    val text = LegacyComponentSerializer.legacySection().serialize(eternal.messages.GRAVE_TEXT.trimIndent().miniMsg(tagResolver))
+    val text = Component.Serializer.fromJson(
+        GsonComponentSerializer.gson().serialize(eternal.messages.GRAVE_TEXT.trimIndent().miniMsg(tagResolver))
+    ) ?: Component.empty()
 
     // Set flags using bitwise operations
     var bitmask = 0
@@ -258,7 +260,7 @@ fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
         ClientboundSetEntityDataPacket(
             entityId, listOf(
                 SynchedEntityData.DataValue(14, EntityDataSerializers.BYTE, 1), // Billboard
-                SynchedEntityData.DataValue(22, EntityDataSerializers.COMPONENT, Component.literal(text)),
+                SynchedEntityData.DataValue(22, EntityDataSerializers.COMPONENT, text),
                 SynchedEntityData.DataValue(24, EntityDataSerializers.INT, Color.fromARGB(0,0,0,0).asARGB()), // Transparent background
                 SynchedEntityData.DataValue(26, EntityDataSerializers.BYTE, bitmask.toByte())
             )
