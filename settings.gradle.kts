@@ -1,3 +1,5 @@
+rootProject.name = "eternalfortune"
+
 pluginManagement {
 	repositories {
 		gradlePluginPortal()
