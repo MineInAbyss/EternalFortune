@@ -6,6 +6,7 @@ import com.mineinabyss.blocky.api.BlockyFurnitures
 import com.mineinabyss.blocky.api.events.furniture.BlockyFurnitureBreakEvent
 import com.mineinabyss.blocky.api.events.furniture.BlockyFurnitureInteractEvent
 import com.mineinabyss.blocky.api.events.furniture.BlockyFurniturePlaceEvent
+import com.mineinabyss.eternalfortune.api.events.PlayerOpenGraveEvent
 import com.mineinabyss.eternalfortune.extensions.*
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.graveInvMap
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.openGraveInventory
@@ -29,8 +30,14 @@ class GraveListener : Listener {
         val grave = baseEntity.grave ?: return
         when {
             grave.isExpired() -> baseEntity.remove() // Mark for removal for EntityRemoveFromWorldEvent to handle
-            //TODO Implement way for other plugins to configure this (MiA and Guilds)
-            !grave.isProtected() || grave.graveOwner == player.uniqueId -> player.openGraveInventory(baseEntity)
+            else -> {
+                // Call event to allow other plugins to handle who can bypass chest-protection
+                // By default only the grave owner can open it, and event is called in
+                // a cancelled state if a non-owner tries to open the grave
+                val openEvent = PlayerOpenGraveEvent(player, baseEntity, grave)
+                if (grave.isProtected() && grave.graveOwner != player.uniqueId) openEvent.isCancelled = true
+                if (openEvent.callEvent()) player.openGraveInventory(baseEntity)
+            }
         }
     }
 
