@@ -11,6 +11,7 @@ import com.mineinabyss.eternalfortune.extensions.*
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.graveInvMap
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.openGraveInventory
 import com.mineinabyss.idofront.entities.toOfflinePlayer
+import org.bukkit.Sound
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ExperienceOrb
 import org.bukkit.entity.ItemDisplay
@@ -37,6 +38,7 @@ class GraveListener : Listener {
                 val openEvent = PlayerOpenGraveEvent(player, baseEntity, grave)
                 if (grave.isProtected() && grave.graveOwner != player.uniqueId) openEvent.isCancelled = true
                 if (openEvent.callEvent()) player.openGraveInventory(baseEntity)
+                else player.playSound(baseEntity.location, Sound.BLOCK_CHEST_LOCKED, 1f, 1f)
             }
         }
     }

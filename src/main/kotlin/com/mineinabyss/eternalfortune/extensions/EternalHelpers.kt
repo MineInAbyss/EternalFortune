@@ -113,6 +113,7 @@ object EternalHelpers {
     fun Player.openGraveInventory(baseEntity: ItemDisplay) {
         val graveInv = graveInvMap.getOrPut(baseEntity.uniqueId) { createGraveStorage(this, baseEntity) ?: return }
         graveInv.open(this)
+        this.playSound(baseEntity.location, Sound.BLOCK_CHEST_OPEN, 1f, 1f)
     }
 
     private fun createGraveStorage(player: Player, baseEntity: ItemDisplay): StorageGui? {
