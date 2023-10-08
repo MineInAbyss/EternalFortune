@@ -63,11 +63,11 @@ import kotlin.time.ExperimentalTime
 
 
 object EternalHelpers {
-    fun Player.spawnGrave(drops: List<ItemStack>, droppedExp: Int): Boolean {
+    fun Player.spawnGrave(drops: List<ItemStack>, droppedExp: Int): ItemDisplay? {
         val graveLocation =
-            location.findNearestSpawnableBlock() ?: run { this.error(eternal.messages.NO_SPACE_FOR_GRAVE); return false }
+            location.findNearestSpawnableBlock() ?: run { this.error(eternal.messages.NO_SPACE_FOR_GRAVE); return null }
         val grave = BlockyFurnitures.placeFurniture(eternal.config.graveFurniture, graveLocation) ?: run {
-            this.error(eternal.messages.NO_SPACE_FOR_GRAVE); return false
+            this.error(eternal.messages.NO_SPACE_FOR_GRAVE); return null
         }
         val expirationDate =
             LocalDateTime.now().plusSeconds(eternal.config.expirationTime.inWholeSeconds).toEpochSecond(ZoneOffset.UTC)
@@ -82,12 +82,12 @@ object EternalHelpers {
             )
         )
         grave.toGearyOrNull()?.setPersisting(Grave(uniqueId, drops, droppedExp, protectionDate, expirationDate))
-            ?: run { this.error(eternal.messages.FAILED_FILLING_GRAVE); return false }
+            ?: run { this.error(eternal.messages.FAILED_FILLING_GRAVE); BlockyFurnitures.removeFurniture(grave); return null }
         this.success("Grave spawned at ${graveLocation.blockX} ${graveLocation.blockY} ${graveLocation.blockZ}!")
         grave.world.getNearbyPlayers(grave.location, 16.0).forEach {
             it.sendGraveTextDisplay(grave)
         }
-        return true
+        return grave
     }
 
     private fun Location.findNearestSpawnableBlock(): Location? {

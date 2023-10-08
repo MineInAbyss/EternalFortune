@@ -4,4 +4,5 @@ expirationTime: 7d
 maxGraveCount: 1
 spawnRadiusCheck: 1
 ignoreKeepInv: false
+keepExp: true
 textDisplayOffset: 1.5

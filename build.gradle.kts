@@ -19,6 +19,10 @@ repositories {
 	mavenLocal()
 }
 
+tasks{
+	build.get().dependsOn(publishToMavenLocal)
+}
+
 dependencies {
 	// MineInAbyss platform
 	compileOnly(libs.kotlinx.serialization.json)

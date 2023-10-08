@@ -14,5 +14,6 @@ data class EternalConfig(
     val expirationTime: @Serializable(DurationSerializer::class) Duration,
     val spawnRadiusCheck: Int,
     val ignoreKeepInv: Boolean,
+    val keepExp: Boolean,
     val textDisplayOffset: Double,
 )
