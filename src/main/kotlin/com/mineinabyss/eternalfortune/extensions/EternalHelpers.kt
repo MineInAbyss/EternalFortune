@@ -84,7 +84,7 @@ object EternalHelpers {
         grave.toGearyOrNull()?.setPersisting(Grave(uniqueId, drops, droppedExp, protectionDate, expirationDate))
             ?: run { this.error(eternal.messages.FAILED_FILLING_GRAVE); return false }
         this.success("Grave spawned at ${graveLocation.blockX} ${graveLocation.blockY} ${graveLocation.blockZ}!")
-        Bukkit.getOnlinePlayers().forEach {
+        grave.world.getNearbyPlayers(grave.location, 16.0).forEach {
             it.sendGraveTextDisplay(grave)
         }
         return true

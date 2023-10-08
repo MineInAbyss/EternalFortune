@@ -10,7 +10,6 @@ import com.mineinabyss.eternalfortune.extensions.*
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.graveInvMap
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.openGraveInventory
 import com.mineinabyss.idofront.entities.toOfflinePlayer
-import org.bukkit.Bukkit
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ExperienceOrb
 import org.bukkit.entity.ItemDisplay
@@ -46,7 +45,7 @@ class GraveListener : Listener {
         val itemDisplay = entity as? ItemDisplay ?: return
         val grave = itemDisplay.grave ?: return
         when {
-            !grave.isExpired() -> Bukkit.getOnlinePlayers().forEach { it.sendGraveTextDisplay(itemDisplay) }
+            !grave.isExpired() -> itemDisplay.world.getNearbyPlayers(itemDisplay.location, 16.0).forEach { it.sendGraveTextDisplay(itemDisplay) }
             else -> itemDisplay.remove()
         }
     }
