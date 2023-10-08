@@ -1,24 +1,17 @@
 package com.mineinabyss.eternalfortune
 
-import com.mineinabyss.blocky.api.BlockyFurnitures
 import com.mineinabyss.eternalfortune.components.PlayerGraves
 import com.mineinabyss.eternalfortune.extensions.*
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.spawnGrave
-import com.mineinabyss.geary.helpers.with
 import com.mineinabyss.geary.papermc.datastore.decode
-import com.mineinabyss.geary.papermc.datastore.encode
-import com.mineinabyss.geary.papermc.datastore.remove
-import com.mineinabyss.geary.papermc.tracking.entities.toGeary
-import com.mineinabyss.geary.papermc.tracking.entities.toGearyOrNull
 import com.mineinabyss.idofront.commands.arguments.offlinePlayerArg
 import com.mineinabyss.idofront.commands.arguments.playerArg
-import com.mineinabyss.idofront.commands.entrypoint.CommandDSLEntrypoint
 import com.mineinabyss.idofront.commands.execution.IdofrontCommandExecutor
 import com.mineinabyss.idofront.commands.extensions.actions.playerAction
 import com.mineinabyss.idofront.messaging.error
+import com.mineinabyss.idofront.messaging.success
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
-import org.bukkit.WorldCreator
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
@@ -28,7 +21,13 @@ import org.bukkit.entity.Player
 class EternalCommands : IdofrontCommandExecutor(), TabCompleter {
 
     override val commands = commands(eternal.plugin) {
-        command("eternal", "ef") {
+        command("eternalfortune", "eternal", "ef") {
+            "reload" {
+                action {
+                    eternal.plugin.registerEternalContext()
+                    sender.success("EternalFortune configs have been reloaded!")
+                }
+            }
             "graves" {
                 "place" {
                     val player: Player by playerArg()
