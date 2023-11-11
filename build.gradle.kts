@@ -25,6 +25,8 @@ tasks{
 
 dependencies {
 	// MineInAbyss platform
+	compileOnly(libs.bundles.idofront.core)
+	compileOnly(libs.idofront.nms)
 	compileOnly(libs.kotlinx.serialization.json)
 	compileOnly(libs.kotlinx.serialization.kaml)
 	compileOnly(libs.kotlinx.coroutines)
@@ -35,7 +37,5 @@ dependencies {
 	compileOnly(eLibs.protocolburrito)
 	compileOnly(libs.minecraft.plugin.protocollib)
 
-	implementation(libs.bundles.idofront.core)
-	implementation(libs.idofront.nms)
 	implementation(eLibs.minecraft.plugin.triumph.gui)
 }

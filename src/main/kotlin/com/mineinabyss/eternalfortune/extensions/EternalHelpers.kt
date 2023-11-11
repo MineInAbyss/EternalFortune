@@ -45,7 +45,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.phys.Vec3
 import org.bukkit.*
-import org.bukkit.craftbukkit.v1_20_R1.CraftServer
+import org.bukkit.craftbukkit.v1_20_R2.CraftServer
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -260,10 +260,10 @@ fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
     PacketContainer.fromPacket(
         ClientboundSetEntityDataPacket(
             entityId, listOf(
-                SynchedEntityData.DataValue(14, EntityDataSerializers.BYTE, 1), // Billboard
-                SynchedEntityData.DataValue(22, EntityDataSerializers.COMPONENT, text),
-                SynchedEntityData.DataValue(24, EntityDataSerializers.INT, Color.fromARGB(0,0,0,0).asARGB()), // Transparent background
-                SynchedEntityData.DataValue(26, EntityDataSerializers.BYTE, bitmask.toByte())
+                SynchedEntityData.DataValue(15, EntityDataSerializers.BYTE, 1), // Billboard
+                SynchedEntityData.DataValue(23, EntityDataSerializers.COMPONENT, text),
+                SynchedEntityData.DataValue(25, EntityDataSerializers.INT, Color.fromARGB(0,0,0,0).asARGB()), // Transparent background
+                SynchedEntityData.DataValue(27, EntityDataSerializers.BYTE, bitmask.toByte())
             )
         )
     ).sendTo(this@sendGraveText)

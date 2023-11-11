@@ -5,15 +5,16 @@ import com.mineinabyss.geary.prefabs.serializers.PrefabKeySerializer
 import com.mineinabyss.idofront.serialization.DurationSerializer
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 
 @Serializable
 data class EternalConfig(
-    val graveFurniture: @Serializable(PrefabKeySerializer::class) PrefabKey,
-    val maxGraveCount: Int,
-    val protectionTime: @Serializable(DurationSerializer::class) Duration,
-    val expirationTime: @Serializable(DurationSerializer::class) Duration,
-    val spawnRadiusCheck: Int,
-    val ignoreKeepInv: Boolean,
-    val keepExp: Boolean,
-    val textDisplayOffset: Double,
+    val graveFurniture: @Serializable(PrefabKeySerializer::class) PrefabKey = PrefabKey.of("mineinabyss", "bonfire"),
+    val maxGraveCount: Int = 1,
+    val protectionTime: @Serializable(DurationSerializer::class) Duration = 7.days,
+    val expirationTime: @Serializable(DurationSerializer::class) Duration = 7.days,
+    val spawnRadiusCheck: Int = 1,
+    val ignoreKeepInv: Boolean = false,
+    val keepExp: Boolean = true,
+    val textDisplayOffset: Double = 1.5,
 )

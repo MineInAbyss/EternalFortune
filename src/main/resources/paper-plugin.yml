@@ -1,0 +1,20 @@
+name: EternalFortune
+version: ${plugin_version}
+main: com.mineinabyss.eternalfortune.EternalFortune
+api-version: "1.20"
+authors: [ boy0000 ]
+
+dependencies:
+  server:
+    Geary:
+      required: true
+      load: BEFORE
+      join-classpath: true
+    Blocky:
+      required: true
+      load: BEFORE
+      join-classpath: true
+    ProtocolBurrito:
+      required: true
+      load: BEFORE
+      join-classpath: true
