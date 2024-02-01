@@ -6,6 +6,7 @@ import com.mineinabyss.idofront.serialization.ItemStackSerializer
 import com.mineinabyss.idofront.serialization.UUIDSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 import kotlin.time.Duration
@@ -21,4 +22,5 @@ data class Grave(
 ) {
     fun isExpired() = expirationTime < currentTime()
     fun isProtected() = protectionTime > currentTime()
+    fun isOwner(player: Player) = graveOwner == player.uniqueId
 }

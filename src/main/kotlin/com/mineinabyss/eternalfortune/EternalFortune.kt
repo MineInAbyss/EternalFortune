@@ -17,14 +17,6 @@ import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
 class EternalFortune : JavaPlugin() {
-    override fun onLoad() {
-        geary {
-            autoscan(classLoader, "com.mineinabyss.eternalfortune") {
-                all()
-            }
-        }
-    }
-
     override fun onEnable() {
         registerEternalContext()
 

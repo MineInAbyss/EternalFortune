@@ -10,6 +10,7 @@ import com.mineinabyss.eternalfortune.api.events.PlayerOpenGraveEvent
 import com.mineinabyss.eternalfortune.extensions.*
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.graveInvMap
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.openGraveInventory
+import com.mineinabyss.geary.papermc.tracking.entities.events.GearyEntityAddToWorldEvent
 import com.mineinabyss.idofront.entities.toOfflinePlayer
 import org.bukkit.Sound
 import org.bukkit.entity.EntityType
@@ -46,11 +47,11 @@ class GraveListener : Listener {
     @EventHandler
     fun BlockyFurnitureBreakEvent.onBreakGrave() {
         val grave = baseEntity.grave ?: return
-        if (grave.isProtected() && grave.graveOwner == player.uniqueId) isCancelled = true
+        if (grave.isProtected() && !grave.isOwner(player)) isCancelled = true
     }
 
     @EventHandler
-    fun EntityAddToWorldEvent.onLoadExpiredGrave() {
+    fun GearyEntityAddToWorldEvent.onLoadExpiredGrave() {
         val itemDisplay = entity as? ItemDisplay ?: return
         val grave = itemDisplay.grave ?: return
         when {

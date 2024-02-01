@@ -30,8 +30,7 @@ class EternalCommands : IdofrontCommandExecutor(), TabCompleter {
             }
             "graves" {
                 "place" {
-                    val player: Player by playerArg()
-                    action {
+                    playerAction {
                         player.spawnGrave(player.inventory.storageContents.toList().filterNotNull(), 0)
                     }
                 }
@@ -77,7 +76,7 @@ class EternalCommands : IdofrontCommandExecutor(), TabCompleter {
     ): List<String> {
         if (command.label != "eternal") return emptyList()
         when (args.size) {
-            1 -> listOf("graves").filter { it.startsWith(args[0]) }
+            1 -> listOf("graves", "reload").filter { it.startsWith(args[0]) }
             2 -> when (args[0]) {
                 "graves" -> listOf("place", "remove", "text").filter { it.startsWith(args[1]) }
             }

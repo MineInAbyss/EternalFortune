@@ -9,7 +9,7 @@ import kotlin.time.Duration.Companion.days
 
 @Serializable
 data class EternalConfig(
-    val graveFurniture: @Serializable(PrefabKeySerializer::class) PrefabKey = PrefabKey.of("mineinabyss", "bonfire"),
+    val graveFurniture: @Serializable(PrefabKeySerializer::class) PrefabKey = PrefabKey.of("mineinabyss", "grave"),
     val maxGraveCount: Int = 1,
     val protectionTime: @Serializable(DurationSerializer::class) Duration = 7.days,
     val expirationTime: @Serializable(DurationSerializer::class) Duration = 7.days,

@@ -8,11 +8,13 @@ import com.mineinabyss.eternalfortune.eternal
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.spawnGrave
 import com.mineinabyss.eternalfortune.extensions.isGrave
 import com.mineinabyss.eternalfortune.extensions.playerGraves
+import com.mineinabyss.eternalfortune.extensions.removeGraveTextDisplay
 import com.mineinabyss.eternalfortune.extensions.sendGraveTextDisplay
 import com.mineinabyss.geary.papermc.tracking.entities.toGeary
 import com.mineinabyss.idofront.messaging.error
 import com.mineinabyss.idofront.textcomponents.miniMsg
 import io.papermc.paper.event.packet.PlayerChunkLoadEvent
+import io.papermc.paper.event.packet.PlayerChunkUnloadEvent
 import kotlinx.coroutines.delay
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.event.EventHandler

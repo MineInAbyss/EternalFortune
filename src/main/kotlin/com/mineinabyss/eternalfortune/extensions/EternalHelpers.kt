@@ -27,6 +27,7 @@ import com.mineinabyss.idofront.textcomponents.miniMsg
 import com.mineinabyss.protocolburrito.dsl.sendTo
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
+import io.papermc.paper.adventure.PaperAdventure
 import it.unimi.dsi.fastutil.ints.IntList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -45,7 +46,7 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.phys.Vec3
 import org.bukkit.*
-import org.bukkit.craftbukkit.v1_20_R2.CraftServer
+import org.bukkit.craftbukkit.v1_20_R3.CraftServer
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -55,6 +56,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -237,10 +239,11 @@ fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
 @OptIn(ExperimentalTime::class)
 fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
     fun formatDuration(duration: Duration): String {
-        val hours = duration.inWholeHours
-        val minutes = duration.minus(hours.hours).inWholeMinutes
-        val seconds = duration.minus(hours.hours).minus(minutes.minutes).inWholeSeconds
-        return "${if (duration.isPositive()) "<red>" else "<green>"}${hours}h:${minutes}m:${seconds}s"
+        val days = duration.inWholeDays
+        val hours = duration.minus(days.days).inWholeHours
+        val minutes = duration.minus(hours.minutes).inWholeMinutes
+        val seconds = duration.minus(hours.seconds).minus(minutes.seconds).inWholeSeconds
+        return "${if (duration.isPositive()) "<red>" else "<green>"}${days}d:${hours}h:${minutes}m:${seconds}s"
     }
     fun convertTime(duration: Long) = formatDuration(Duration.convert((maxOf(duration - currentTime(), 0)).toDouble(), DurationUnit.SECONDS, DurationUnit.SECONDS).seconds)
     val tagResolver = TagResolver.resolver(
@@ -248,9 +251,7 @@ fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
         TagResolver.resolver("protection", Tag.inserting(convertTime(baseEntity.grave?.protectionTime ?: 0).miniMsg())),
         TagResolver.resolver("expiration", Tag.inserting(convertTime(baseEntity.grave?.expirationTime ?: 0).miniMsg())),
     )
-    val text = Component.Serializer.fromJson(
-        GsonComponentSerializer.gson().serialize(eternal.messages.GRAVE_TEXT.trimIndent().miniMsg(tagResolver))
-    ) ?: Component.empty()
+    val text = PaperAdventure.asVanilla(eternal.messages.GRAVE_TEXT.trimIndent().miniMsg(tagResolver)) ?: Component.empty()
 
     // Set flags using bitwise operations
     var bitmask = 0
