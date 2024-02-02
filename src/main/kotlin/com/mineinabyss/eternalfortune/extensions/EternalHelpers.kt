@@ -62,6 +62,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
+import kotlin.time.toJavaDuration
 
 
 object EternalHelpers {
@@ -236,16 +237,15 @@ fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
     }
 }
 
+fun formatDuration(duration: Duration) = duration.toComponents { days, hours, minutes, seconds, _ ->
+    "${if (duration.isPositive()) "<red>" else "<green>"}${days}d:${hours}h:${minutes}m:${seconds}s"
+}
+
 @OptIn(ExperimentalTime::class)
+fun convertTime(duration: Long) =
+    formatDuration(Duration.convert((maxOf(duration - currentTime(), 0)).toDouble(), DurationUnit.SECONDS, DurationUnit.SECONDS).seconds)
+
 fun Player.sendGraveText(baseEntity: ItemDisplay, entityId: Int) {
-    fun formatDuration(duration: Duration): String {
-        val days = duration.inWholeDays
-        val hours = duration.minus(days.days).inWholeHours
-        val minutes = duration.minus(hours.minutes).inWholeMinutes
-        val seconds = duration.minus(hours.seconds).minus(minutes.seconds).inWholeSeconds
-        return "${if (duration.isPositive()) "<red>" else "<green>"}${days}d:${hours}h:${minutes}m:${seconds}s"
-    }
-    fun convertTime(duration: Long) = formatDuration(Duration.convert((maxOf(duration - currentTime(), 0)).toDouble(), DurationUnit.SECONDS, DurationUnit.SECONDS).seconds)
     val tagResolver = TagResolver.resolver(
         TagResolver.resolver("player", Tag.inserting((baseEntity.grave?.graveOwner?.toOfflinePlayer()?.name ?: "").miniMsg())),
         TagResolver.resolver("protection", Tag.inserting(convertTime(baseEntity.grave?.protectionTime ?: 0).miniMsg())),
