@@ -47,16 +47,22 @@ class EternalCommands : IdofrontCommandExecutor(), TabCompleter {
                         val playerGraves = when {
                             player.isOnline -> player.player!!.playerGraves
                             else -> player.getOfflinePDC()?.decode<PlayerGraves>()
-                        } ?: return@action sender.error("Player has no graves")
+                        } ?: return@action sender.error("${player.name} has no graves")
 
                         playerGraves.graveUuids.zip(playerGraves.graveLocations).toSet().forEach { (uuid, loc) ->
                             loc.ensureWorldIsLoaded()
                             loc.world.getChunkAtAsync(loc).thenAccept { c ->
-                                val graveEntity = c.entities.find { it.uniqueId == uuid } as? ItemDisplay ?: return@thenAccept sender.error("Could not find grave entity")
-                                if (graveEntity.grave?.graveContent?.isNotEmpty() == true)
-                                    for (item in graveEntity.grave!!.graveContent)
-                                        graveEntity.world.dropItemNaturally(graveEntity.location, item)
-                                graveEntity.remove()
+                                val graveEntity = c.entities.find { it.uniqueId == uuid } as? ItemDisplay
+                                when {
+                                    graveEntity == null ->
+                                        if (sender == player) sender.error("Could not find grave entity")
+                                        else sender.error("Could not find grave entity for ${player.name}")
+                                    graveEntity.grave?.graveContent?.isNotEmpty() == true ->
+                                        for (item in graveEntity.grave!!.graveContent)
+                                            graveEntity.world.dropItemNaturally(graveEntity.location, item)
+                                }
+
+                                graveEntity?.remove()
 
                                 // Remove the grave from the player's data
                                 player.removeGraveFromPlayerGraves(uuid, loc)
@@ -74,17 +80,18 @@ class EternalCommands : IdofrontCommandExecutor(), TabCompleter {
         label: String,
         args: Array<out String>
     ): List<String> {
-        if (command.label != "eternal") return emptyList()
-        when (args.size) {
+
+        return if (command.name == "eternalfortune") when (args.size) {
             1 -> listOf("graves", "reload").filter { it.startsWith(args[0]) }
-            2 -> when (args[0]) {
-                "graves" -> listOf("place", "remove", "text").filter { it.startsWith(args[1]) }
+            2 -> when {
+                args[0] == "graves" -> listOf("place", "remove", "text").filter { it.startsWith(args[1]) }
+                else -> emptyList()
             }
             3 -> when (args[1]) {
                 "remove" -> Bukkit.getOnlinePlayers().map { it.name }.filter { it.startsWith(args[2]) }
+                else -> emptyList()
             }
             else -> emptyList()
-        }
-        return emptyList()
+        } else emptyList()
     }
 }

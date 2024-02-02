@@ -19,6 +19,7 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.inventory.EquipmentSlot
 
 class GraveListener : Listener {
     // Prevent players from placing down graves normally if they somehow get the item
@@ -31,6 +32,7 @@ class GraveListener : Listener {
     fun BlockyFurnitureInteractEvent.onInteractGrave() {
         val grave = baseEntity.grave ?: return
         when {
+            hand != EquipmentSlot.HAND -> return // Only allow interaction with hand
             grave.isExpired() -> baseEntity.remove() // Mark for removal for EntityRemoveFromWorldEvent to handle
             else -> {
                 // Call event to allow other plugins to handle who can bypass chest-protection
@@ -55,7 +57,7 @@ class GraveListener : Listener {
         val itemDisplay = entity as? ItemDisplay ?: return
         val grave = itemDisplay.grave ?: return
         when {
-            !grave.isExpired() -> itemDisplay.world.getNearbyPlayers(itemDisplay.location, 16.0).forEach { it.sendGraveTextDisplay(itemDisplay) }
+            !grave.isExpired() -> itemDisplay.sendGraveTextToNearbyPlayers()
             else -> itemDisplay.remove()
         }
     }

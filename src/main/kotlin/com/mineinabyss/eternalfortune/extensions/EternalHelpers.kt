@@ -87,9 +87,7 @@ object EternalHelpers {
         grave.toGearyOrNull()?.setPersisting(Grave(uniqueId, drops, droppedExp, protectionDate, expirationDate))
             ?: run { this.error(eternal.messages.FAILED_FILLING_GRAVE); BlockyFurnitures.removeFurniture(grave); return null }
         this.success("Grave spawned at ${graveLocation.blockX} ${graveLocation.blockY} ${graveLocation.blockZ}!")
-        grave.world.getNearbyPlayers(grave.location, 16.0).forEach {
-            it.sendGraveTextDisplay(grave)
-        }
+        grave.sendGraveTextToNearbyPlayers()
         return grave
     }
 
@@ -215,6 +213,10 @@ fun Location.ensureWorldIsLoaded() {
 }
 
 val textDisplayIDMap = mutableMapOf<UUID, Int>()
+
+fun ItemDisplay.sendGraveTextToNearbyPlayers() {
+    world.getNearbyPlayers(location, 16.0).forEach { it.sendGraveTextDisplay(this) }
+}
 fun Player.sendGraveTextDisplay(baseEntity: ItemDisplay) {
     val entityId = textDisplayIDMap.computeIfAbsent(baseEntity.uniqueId) { Entity.nextEntityId() }
     val loc = baseEntity.location.toBlockCenterLocation().add(0.0, eternal.config.textDisplayOffset, 0.0)
