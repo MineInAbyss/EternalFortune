@@ -7,11 +7,11 @@ import com.mineinabyss.eternalfortune.eternal
 import com.mineinabyss.eternalfortune.extensions.EternalHelpers.spawnGrave
 import com.mineinabyss.eternalfortune.extensions.isGrave
 import com.mineinabyss.eternalfortune.extensions.playerGraves
-import com.mineinabyss.eternalfortune.extensions.sendGraveTextDisplay
+import com.mineinabyss.eternalfortune.extensions.sendGraveTextToNearbyPlayers
+import com.mineinabyss.geary.papermc.tracking.entities.events.GearyEntityAddToWorldEvent
 import com.mineinabyss.geary.papermc.tracking.entities.toGeary
 import com.mineinabyss.idofront.messaging.error
 import com.mineinabyss.idofront.textcomponents.miniMsg
-import io.papermc.paper.event.packet.PlayerChunkLoadEvent
 import kotlinx.coroutines.delay
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.event.EventHandler
@@ -52,9 +52,8 @@ class PlayerListener : Listener {
     }
 
     @EventHandler
-    fun PlayerChunkLoadEvent.onChunkLoad() {
-        chunk.entities.filterIsInstance<ItemDisplay>().filter { it.isGrave }.forEach { baseEntity ->
-            player.sendGraveTextDisplay(baseEntity)
-        }
+    fun GearyEntityAddToWorldEvent.onGraveLoad() {
+        val itemDisplay = entity as? ItemDisplay ?: return
+        if (itemDisplay.isGrave) itemDisplay.sendGraveTextToNearbyPlayers()
     }
 }

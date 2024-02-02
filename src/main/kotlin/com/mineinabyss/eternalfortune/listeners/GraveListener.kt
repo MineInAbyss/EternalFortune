@@ -1,6 +1,5 @@
 package com.mineinabyss.eternalfortune.listeners
 
-import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import com.mineinabyss.blocky.api.BlockyFurnitures
 import com.mineinabyss.blocky.api.events.furniture.BlockyFurnitureBreakEvent
@@ -39,7 +38,8 @@ class GraveListener : Listener {
                 // By default only the grave owner can open it, and event is called in
                 // a cancelled state if a non-owner tries to open the grave
                 val openEvent = PlayerOpenGraveEvent(player, baseEntity, grave)
-                if (grave.isProtected() && grave.graveOwner != player.uniqueId) openEvent.isCancelled = true
+                if (grave.isProtected() && grave.graveOwner != player.uniqueId && !player.hasPermission(EternalPermissions.BYPASS_OPEN_GRAVE))
+                    openEvent.isCancelled = true
                 if (openEvent.callEvent()) player.openGraveInventory(baseEntity)
                 else player.playSound(baseEntity.location, Sound.BLOCK_CHEST_LOCKED, 1f, 1f)
             }
